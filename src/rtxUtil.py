@@ -58,12 +58,24 @@ def get_random_in_hemisphere(normal: np.array):
         return -in_unit_sphere
 
 
+def get_random_in_unit_disk():
+    while True:
+        p = np.array([get_random_in_range(-1, 1), get_random_in_range(-1, 1), 0])
+        if length_squared(p) >= 1.0:
+            continue
+        return p
+
+
 def deg_to_rad(deg):
     return deg * pi / 180.0
 
 
 def length_squared(v):
     return np.sum(np.square(v))
+
+
+def length(v):
+    return np.sqrt(np.sum(np.square(v)))
 
 
 def unit(v):

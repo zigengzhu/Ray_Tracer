@@ -67,17 +67,19 @@ def main():
 
     if img_width > 1 and img_height > 1 and samples_per_pixel > 0 and max_depth > 0:
         print("\nFile: ", output_path, "\nWidth:  ", img_width, "px\nHeight: ", img_height, "px")
-        print("Samples Per Pixel: ", samples_per_pixel, "\nMax Depth: ", max_depth, "\n")
+        print("#Samples / px: ", samples_per_pixel, "\nMax Depth: ", max_depth, "\n")
     else:
         print("Invalid output size.")
         raise
 
-    lookfrom = np.array([-2.0, 2.0, 1.0])
+    lookfrom = np.array([3.0, 3.0, 2.0])
     lookat = np.array([0.0, 0.0, -1.0])
     vup = np.array([0.0, 1.0, 0.0])
-    vfov = 40.0
+    vfov = 20.0
+    aperature = 2.0
+    focus_dist = ru.length(lookfrom - lookat)
 
-    camera = Camera(img_width, img_height, lookfrom, lookat, vup, vfov)
+    camera = Camera(img_width, img_height, lookfrom, lookat, vup, vfov, aperature, focus_dist)
 
     world = HittableList()
 
