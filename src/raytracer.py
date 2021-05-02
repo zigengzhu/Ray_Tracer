@@ -26,7 +26,7 @@ def linear_render():
             for _ in range(0, samples_per_pixel):
                 u = (i + ru.get_random()) / (img_width - 1)
                 v = (j + ru.get_random()) / (img_height - 1)
-                pixel_color += ru.ray_color(camera.get_ray(u, v), world)
+                pixel_color += ru.ray_color(camera.get_ray(u, v), world, max_depth)
             f.write(ru.color_to_str(pixel_color, samples_per_pixel))
     f.close()
     end = time.time()
@@ -59,14 +59,16 @@ def main():
         print("Invalid input format.")
         raise
 
-    global img_width, img_height, f, device, world, camera, samples_per_pixel
+    global img_width, img_height, f, device, world, camera, samples_per_pixel, max_depth
     img_width = int(input("\nPlease enter the width of the output image:\n"))
     img_height = int(input("\nPlease enter the height of the output image:\n"))
-    samples_per_pixel = int(input("\nPlease enter the number of samples per pixel\n"))
+    samples_per_pixel = int(input("\nPlease enter the number of samples per pixel:\n"))
+    max_depth = int(input("\nPlease enter the max depth:\n"))
     camera = Camera(img_width, img_height)
 
     if img_width > 1 and img_height > 1 and samples_per_pixel > 1:
         print("\nFile: ", output_path, "\nWidth:  ", img_width, "px\nHeight: ", img_height, "px\n")
+        print("Samples Per Pixel: ", samples_per_pixel, "\nMax Depth: ", max_depth, "\n")
     else:
         print("Invalid output size.")
         raise

@@ -30,6 +30,18 @@ def get_random_in_unit_sphere():
         return point
 
 
+def get_random_unit_vector():
+    return unit(get_random_in_unit_sphere())
+
+
+def get_random_in_hemisphere(normal: np.array):
+    in_unit_sphere = get_random_in_unit_sphere()
+    if in_unit_sphere.dot(normal) > 0.0:
+        return in_unit_sphere
+    else:
+        return -in_unit_sphere
+
+
 def deg_to_rad(deg):
     return deg * pi / 180.0
 
@@ -46,11 +58,13 @@ def parallel_unit(v):
     return v / np.linalg.norm(v, axis=1, keepdims=1)
 
 
-def ray_color(r: Ray, world: HittableList):
-    hit_anything, updated_rec = world.hit(r, 0, float('inf'), HitRecord())
+def ray_color(r: Ray, world: HittableList, depth: int):
+    if depth <= 0:
+        return np.array([0.0, 0.0, 0.0])
+    hit_anything, updated_rec = world.hit(r, 0.001, float('inf'), HitRecord())
     if hit_anything:
-        target = updated_rec.p + updated_rec.normal + get_random_in_unit_sphere()
-        return 0.5 * ray_color(Ray(updated_rec.p, target - updated_rec.p), world)
+        target = updated_rec.p + get_random_in_hemisphere(updated_rec.normal)
+        return 0.5 * ray_color(Ray(updated_rec.p, target - updated_rec.p), world, depth - 1)
     t = 0.5 * (unit(r.direction)[1] + 1.0)
     return (1.0 - t) * np.array([1.0, 1.0, 1.0]) + t * np.array([0.5, 0.7, 1.0])
 
@@ -61,7 +75,7 @@ def parallel_ray_color(direction):
 
 
 def color_to_str(color, samples_per_pixel):
-    color = color * (1.0 / samples_per_pixel)
+    color = np.sqrt(color * (1.0 / samples_per_pixel))
     color[0] = 256.0 * clamp(color[0], 0.0, 0.999)
     color[1] = 256.0 * clamp(color[1], 0.0, 0.999)
     color[2] = 256.0 * clamp(color[2], 0.0, 0.999)
