@@ -6,9 +6,16 @@ pi: float = 3.1415926535897932384626433
 rg = np.random.default_rng(12345)
 
 
+def refract(uv: np.array, n: np.array, etai_over_etat: float):
+    cos_theta = np.min(-uv.dot(n), 1.0)
+    r_out_perp = etai_over_etat * (uv + cos_theta * n)
+    r_out_parallel = -np.sqrt(np.abs(1.0 - length_squared(r_out_perp))) * n
+    return r_out_perp + r_out_parallel
+
+
 def near_zero(v: np.array):
     s = 1e-8
-    return v[0] < s and v[1] < s and v[2] < s
+    return np.abs(v[0]) < s and np.abs(v[1]) < s and np.abs(v[2]) < s
 
 
 def reflect(v: np.array, n: np.array):

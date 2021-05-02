@@ -7,7 +7,7 @@ import rtxUtil as ru
 from hittable import HittableList
 from sphere import Sphere
 from camera import Camera
-from material import Lambertian, Metal
+from material import Lambertian, Metal, Dielectric
 
 
 def linear_render():
@@ -74,7 +74,7 @@ def main():
         raise
 
     mat_ground = Lambertian(np.array([0.8, 0.8, 0.0]))
-    mat_center = Lambertian(np.array([0.7, 0.3, 0.3]))
+    mat_center = Dielectric(1.5)
     mat_left = Metal(np.array([0.8, 0.8, 0.8]), 0.3)
     mat_right = Metal(np.array([0.8, 0.6, 0.2]), 1.0)
 
@@ -82,6 +82,7 @@ def main():
     world.add(Sphere(np.array([0.0, 0.0, -1.0]), 0.5, mat_center))
     world.add(Sphere(np.array([0.0, -100.5, -1.0]), 100, mat_ground))
     world.add(Sphere(np.array([-1.0, 0.0, -1.0]), 0.5, mat_left))
+    world.add(Sphere(np.array([-1.0, 0.0, -1.0]), -0.4, mat_left))
     world.add(Sphere(np.array([1.0, 0.0, -1.0]), 0.5, mat_right))
 
     f = open(output_path, "w")
