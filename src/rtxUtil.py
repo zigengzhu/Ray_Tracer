@@ -14,9 +14,20 @@ def get_random_in_range(min, max):
     return min + (max - min) * get_random()
 
 
+def get_random_point():
+    return np.array([get_random(), get_random(), get_random()])
 
 
+def get_random_point_in_range(min, max):
+    return np.array([get_random_in_range(min, max), get_random_in_range(min, max), get_random_in_range(min, max)])
 
+
+def get_random_in_unit_sphere():
+    while True:
+        point = get_random_point_in_range(-1.0, 1.0)
+        if length_squared(point) >= 1:
+            continue
+        return point
 
 
 def deg_to_rad(deg):
@@ -38,7 +49,8 @@ def parallel_unit(v):
 def ray_color(r: Ray, world: HittableList):
     hit_anything, updated_rec = world.hit(r, 0, float('inf'), HitRecord())
     if hit_anything:
-        return 0.5 * (updated_rec.normal + np.array([1.0, 1.0, 1.0]))
+        target = updated_rec.p + updated_rec.normal + get_random_in_unit_sphere()
+        return 0.5 * ray_color(Ray(updated_rec.p, target - updated_rec.p), world)
     t = 0.5 * (unit(r.direction)[1] + 1.0)
     return (1.0 - t) * np.array([1.0, 1.0, 1.0]) + t * np.array([0.5, 0.7, 1.0])
 
