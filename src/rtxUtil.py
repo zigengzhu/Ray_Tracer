@@ -7,7 +7,7 @@ rg = np.random.default_rng(12345)
 
 
 def refract(uv: np.array, n: np.array, etai_over_etat: float):
-    cos_theta = np.min(-uv.dot(n), 1.0)
+    cos_theta = np.minimum(-uv.dot(n), 1.0)
     r_out_perp = etai_over_etat * (uv + cos_theta * n)
     r_out_parallel = -np.sqrt(np.abs(1.0 - length_squared(r_out_perp))) * n
     return r_out_perp + r_out_parallel

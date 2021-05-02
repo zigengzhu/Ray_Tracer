@@ -58,7 +58,7 @@ class Dielectric(Material, ABC):
         else:
             refraction_ratio = self.ir
         unit_direction = ru.unit(r_in.direction)
-        cos_theta = np.min(-unit_direction.dot(rec.normal), 1.0)
+        cos_theta = np.minimum(-unit_direction.dot(rec.normal), 1.0)
         sin_theta = np.sqrt(1.0 - cos_theta * cos_theta)
         cannot_refract = refraction_ratio * sin_theta > 1.0
         direction: np.array

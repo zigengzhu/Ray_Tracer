@@ -66,7 +66,7 @@ def main():
     max_depth = int(input("\nPlease enter the max depth:\n"))
     camera = Camera(img_width, img_height)
 
-    if img_width > 1 and img_height > 1 and samples_per_pixel > 1:
+    if img_width > 1 and img_height > 1 and samples_per_pixel > 0 and max_depth > 0:
         print("\nFile: ", output_path, "\nWidth:  ", img_width, "px\nHeight: ", img_height, "px")
         print("Samples Per Pixel: ", samples_per_pixel, "\nMax Depth: ", max_depth, "\n")
     else:
