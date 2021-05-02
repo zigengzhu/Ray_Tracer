@@ -1,19 +1,50 @@
+import time
+
 import numpy as np
 import torch
 import sys
+import rtxRay as ry
+import rtxUtil as ru
+from hittable import HittableList
+from sphere import Sphere
+from camera import Camera
 
-def render_simple_img():
-    for j in range(img_height-1, -1, -1):
+
+def linear_render():
+    print("linear_render")
+    start = time.time()
+    temp = 0
+    for j in range(img_height - 1, -1, -1):
+        # Print real time render progress in-line
+        progress = int(100 - 100 * j / img_height)
+        if progress % 5 == 0 and progress != temp:
+            temp = progress
+            print('Progress: %d%%' % temp, end='\r', flush=True)
+
         for i in range(0, img_width):
-            r = float(i) / (img_width - 1)
-            g = float(j) / (img_height - 1)
-            b = 0.25
+            pixel_color = np.array([0, 0, 0], dtype=float)
+            for _ in range(0, samples_per_pixel):
+                u = (i + ru.get_random()) / (img_width - 1)
+                v = (j + ru.get_random()) / (img_height - 1)
+                pixel_color += ru.ray_color(camera.get_ray(u, v), world)
+            f.write(ru.color_to_str(pixel_color, samples_per_pixel))
+    f.close()
+    end = time.time()
+    print("\nRender complete.\n")
+    print("(normal) Time taken: " + str(end - start) + '\n')
 
-            ir = int(255.999 * r)
-            ig = int(255.999 * g)
-            ib = int(255.999 * b)
 
-            f.write(str(ir) + ' ' + str(ig) + ' ' + str(ib) + '\n')
+def parallel_render():
+    start = time.time()
+    col_0 = np.array([[float(i) / (img_width-1) for _ in range(img_height - 1, -1, -1) for i in range(0, img_width)]]).T
+    col_1 = np.array([[float(i) / (img_height-1) for i in range(img_height - 1, -1, -1) for _ in range(0, img_width)]]).T
+    img = ru.parallel_ray_color(camera.lower_left_corner + col_0 * camera.horizontal + col_1 * camera.vertical - camera.origin)
+    for pixel in img:
+        f.write(ru.color_to_str(pixel, samples_per_pixel))
+    f.close()
+    end = time.time()
+    print("(numpy) Time taken: " + str(end - start) + '\n')
+
 
 def main():
     output_path = "../output/"
@@ -28,24 +59,34 @@ def main():
         print("Invalid input format.")
         raise
 
-    global img_width, img_height, f
-    img_width = int(input("Please enter the width of the output image:\n"))
-    img_height = int(input("Please enter the height of the output image:\n"))
+    global img_width, img_height, f, device, world, camera, samples_per_pixel
+    img_width = int(input("\nPlease enter the width of the output image:\n"))
+    img_height = int(input("\nPlease enter the height of the output image:\n"))
+    samples_per_pixel = int(input("\nPlease enter the number of samples per pixel\n"))
+    camera = Camera(img_width, img_height)
 
-    if img_width > 0 and img_height > 0:
+    if img_width > 1 and img_height > 1 and samples_per_pixel > 1:
         print("\nFile: ", output_path, "\nWidth:  ", img_width, "px\nHeight: ", img_height, "px\n")
     else:
         print("Invalid output size.")
         raise
+
+    world = HittableList()
+    world.add(Sphere(np.array([0.0, 0.0, -1.0]), 0.5))
+    world.add(Sphere(np.array([0.0, -100.5, -1.0]), 100))
 
     f = open(output_path, "w")
     f.write("P3\n")
     f.write("# " + output_name + ".ppm\n")
     f.write("# Ray Tracer created by Zigeng Zhu (zigeng2@illinois.edu)\n")
     f.write(str(img_width) + " " + str(img_height) + "\n255\n")
-    render_simple_img()
-    print("File created.")
-    f.close()
+
+    device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
+    torch.cuda.empty_cache()
+
+    linear_render()
+    #parallel_render()
+
 
 if __name__ == "__main__":
     main()
