@@ -3,11 +3,11 @@ import time
 import numpy as np
 import torch
 import sys
-import rtxRay as ry
 import rtxUtil as ru
 from hittable import HittableList
 from sphere import Sphere
 from camera import Camera
+from material import Lambertian, Metal
 
 
 def linear_render():
@@ -67,15 +67,22 @@ def main():
     camera = Camera(img_width, img_height)
 
     if img_width > 1 and img_height > 1 and samples_per_pixel > 1:
-        print("\nFile: ", output_path, "\nWidth:  ", img_width, "px\nHeight: ", img_height, "px\n")
+        print("\nFile: ", output_path, "\nWidth:  ", img_width, "px\nHeight: ", img_height, "px")
         print("Samples Per Pixel: ", samples_per_pixel, "\nMax Depth: ", max_depth, "\n")
     else:
         print("Invalid output size.")
         raise
 
+    mat_ground = Lambertian(np.array([0.8, 0.8, 0.0]))
+    mat_center = Lambertian(np.array([0.7, 0.3, 0.3]))
+    mat_left = Metal(np.array([0.8, 0.8, 0.8]), 0.3)
+    mat_right = Metal(np.array([0.8, 0.6, 0.2]), 1.0)
+
     world = HittableList()
-    world.add(Sphere(np.array([0.0, 0.0, -1.0]), 0.5))
-    world.add(Sphere(np.array([0.0, -100.5, -1.0]), 100))
+    world.add(Sphere(np.array([0.0, 0.0, -1.0]), 0.5, mat_center))
+    world.add(Sphere(np.array([0.0, -100.5, -1.0]), 100, mat_ground))
+    world.add(Sphere(np.array([-1.0, 0.0, -1.0]), 0.5, mat_left))
+    world.add(Sphere(np.array([1.0, 0.0, -1.0]), 0.5, mat_right))
 
     f = open(output_path, "w")
     f.write("P3\n")

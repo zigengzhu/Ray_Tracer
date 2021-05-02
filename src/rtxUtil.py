@@ -1,9 +1,18 @@
 import numpy as np
-from hittable import HittableList, HitRecord, Hittable
+from hittable import HittableList, HitRecord
 from rtxRay import Ray
 
 pi: float = 3.1415926535897932384626433
 rg = np.random.default_rng(12345)
+
+
+def near_zero(v: np.array):
+    s = 1e-8
+    return v[0] < s and v[1] < s and v[2] < s
+
+
+def reflect(v: np.array, n: np.array):
+    return v - 2.0 * v.dot(n) * n
 
 
 def get_random():
@@ -61,10 +70,16 @@ def parallel_unit(v):
 def ray_color(r: Ray, world: HittableList, depth: int):
     if depth <= 0:
         return np.array([0.0, 0.0, 0.0])
+
     hit_anything, updated_rec = world.hit(r, 0.001, float('inf'), HitRecord())
     if hit_anything:
-        target = updated_rec.p + get_random_in_hemisphere(updated_rec.normal)
-        return 0.5 * ray_color(Ray(updated_rec.p, target - updated_rec.p), world, depth - 1)
+        is_scatter, scattered, attenuation = updated_rec.mat.scatter(r, updated_rec)
+        if is_scatter:
+            return attenuation * ray_color(scattered, world, depth - 1)
+
+        return np.array([0.0, 0.0, 0.0])
+        # target = updated_rec.p + get_random_in_hemisphere(updated_rec.normal)
+        # return 0.5 * ray_color(Ray(updated_rec.p, target - updated_rec.p), world, depth - 1)
     t = 0.5 * (unit(r.direction)[1] + 1.0)
     return (1.0 - t) * np.array([1.0, 1.0, 1.0]) + t * np.array([0.5, 0.7, 1.0])
 

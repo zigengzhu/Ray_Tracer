@@ -1,4 +1,5 @@
 from abc import ABC, abstractmethod
+from material import Material
 import numpy as np
 import rtxRay as ry
 
@@ -6,6 +7,7 @@ import rtxRay as ry
 class HitRecord:
     p: np.array
     normal: np.array
+    mat: Material
     t: float
     front_face: bool
 

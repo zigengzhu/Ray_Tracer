@@ -8,10 +8,12 @@ from hittable import Hittable, HitRecord
 class Sphere(Hittable, ABC):
     center = None
     radius = None
+    material = None
 
-    def __init__(self, center, radius):
+    def __init__(self, center, radius, material):
         self.center = center
         self.radius = radius
+        self.material = material
 
     def hit(self, r: ry.Ray, t_min: float, t_max: float, rec: HitRecord):
         oc = r.origin - self.center
@@ -35,4 +37,5 @@ class Sphere(Hittable, ABC):
         rec.p = r.at(rec.t)
         outward_normal = (rec.p - self.center) / self.radius
         rec.set_face_normal(r, outward_normal)
+        rec.mat = self.material
         return True
