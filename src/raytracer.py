@@ -64,7 +64,6 @@ def main():
     img_height = int(input("\nPlease enter the height of the output image:\n"))
     samples_per_pixel = int(input("\nPlease enter the number of samples per pixel:\n"))
     max_depth = int(input("\nPlease enter the max depth:\n"))
-    camera = Camera(img_width, img_height)
 
     if img_width > 1 and img_height > 1 and samples_per_pixel > 0 and max_depth > 0:
         print("\nFile: ", output_path, "\nWidth:  ", img_width, "px\nHeight: ", img_height, "px")
@@ -73,16 +72,24 @@ def main():
         print("Invalid output size.")
         raise
 
-    mat_ground = Lambertian(np.array([0.8, 0.8, 0.0]))
-    mat_center = Dielectric(1.5)
-    mat_left = Metal(np.array([0.8, 0.8, 0.8]), 0.3)
-    mat_right = Metal(np.array([0.8, 0.6, 0.2]), 1.0)
+    lookfrom = np.array([-2.0, 2.0, 1.0])
+    lookat = np.array([0.0, 0.0, -1.0])
+    vup = np.array([0.0, 1.0, 0.0])
+    vfov = 40.0
+
+    camera = Camera(img_width, img_height, lookfrom, lookat, vup, vfov)
 
     world = HittableList()
-    world.add(Sphere(np.array([0.0, 0.0, -1.0]), 0.5, mat_center))
+
+    mat_ground = Lambertian(np.array([0.8, 0.8, 0.0]))
+    mat_center = Lambertian(np.array([0.1, 0.2, 0.5]))
+    mat_left = Dielectric(1.5)
+    mat_right = Metal(np.array([0.8, 0.6, 0.2]), 0.0)
+
     world.add(Sphere(np.array([0.0, -100.5, -1.0]), 100, mat_ground))
+    world.add(Sphere(np.array([0.0, 0.0, -1.0]), 0.5, mat_center))
     world.add(Sphere(np.array([-1.0, 0.0, -1.0]), 0.5, mat_left))
-    world.add(Sphere(np.array([-1.0, 0.0, -1.0]), -0.4, mat_left))
+    world.add(Sphere(np.array([-1.0, 0.0, -1.0]), -0.45, mat_left))
     world.add(Sphere(np.array([1.0, 0.0, -1.0]), 0.5, mat_right))
 
     f = open(output_path, "w")
