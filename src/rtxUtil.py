@@ -2,6 +2,7 @@ import numpy as np
 from hittable import HittableList, HitRecord
 from rtxRay import Ray
 
+
 pi: float = 3.1415926535897932384626433
 rg = np.random.default_rng(12345)
 
@@ -116,9 +117,9 @@ def color_to_str(color, samples_per_pixel):
     return str(int(color[0])) + ' ' + str(int(color[1])) + ' ' + str(int(color[2])) + '\n'
 
 
-def clamp(x: float, min: float, max: float):
-    if x < min:
-        return min
-    if x > max:
-        return max
+def clamp(x: float, minimum: float, maximum: float):
+    if x < minimum:
+        return minimum
+    if x > maximum:
+        return maximum
     return x

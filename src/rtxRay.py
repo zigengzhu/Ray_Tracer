@@ -2,7 +2,6 @@ import numpy as np
 
 
 class Ray:
-
     origin = None
     direction = None
 

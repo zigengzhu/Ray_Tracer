@@ -1,5 +1,4 @@
 import time
-
 import numpy as np
 import torch
 import sys
@@ -7,7 +6,7 @@ import rtxUtil as ru
 from hittable import HittableList
 from sphere import Sphere
 from camera import Camera
-from material import Lambertian, Metal, Dielectric
+from material import Material, Lambertian, Metal, Dielectric
 
 
 def linear_render():
@@ -72,39 +71,81 @@ def main():
         print("Invalid output size.")
         raise
 
-    lookfrom = np.array([3.0, 3.0, 2.0])
-    lookat = np.array([0.0, 0.0, -1.0])
+    """
+        # world 1
+        lookfrom = np.array([3.0, 3.0, 2.0])
+        lookat = np.array([0.0, 0.0, -1.0])
+        vup = np.array([0.0, 1.0, 0.0])
+        vfov = 20.0
+        aperature = 2.0
+        focus_dist = ru.length(lookfrom - lookat)
+    
+        camera = Camera(img_width, img_height, lookfrom, lookat, vup, vfov, aperature, focus_dist)
+    
+        world = HittableList()
+    
+        mat_ground = Lambertian(np.array([0.8, 0.8, 0.0]))
+        mat_center = Lambertian(np.array([0.1, 0.2, 0.5]))
+        mat_left = Dielectric(1.5)
+        mat_right = Metal(np.array([0.8, 0.6, 0.2]), 0.0)
+    
+        world.add(Sphere(np.array([0.0, -100.5, -1.0]), 100, mat_ground))
+        world.add(Sphere(np.array([0.0, 0.0, -1.0]), 0.5, mat_center))
+        world.add(Sphere(np.array([-1.0, 0.0, -1.0]), 0.5, mat_left))
+        world.add(Sphere(np.array([-1.0, 0.0, -1.0]), -0.45, mat_left))
+        world.add(Sphere(np.array([1.0, 0.0, -1.0]), 0.5, mat_right))
+    
+    """
+
+    lookfrom = np.array([13.0, 2.0, 3.0])
+    lookat = np.array([0.0, 0.0, 0.0])
     vup = np.array([0.0, 1.0, 0.0])
     vfov = 20.0
-    aperature = 2.0
-    focus_dist = ru.length(lookfrom - lookat)
+    aperature = 0.1
+    focus_dist = 10.0  # ru.length(lookfrom - lookat)
 
     camera = Camera(img_width, img_height, lookfrom, lookat, vup, vfov, aperature, focus_dist)
 
     world = HittableList()
 
-    mat_ground = Lambertian(np.array([0.8, 0.8, 0.0]))
-    mat_center = Lambertian(np.array([0.1, 0.2, 0.5]))
-    mat_left = Dielectric(1.5)
-    mat_right = Metal(np.array([0.8, 0.6, 0.2]), 0.0)
+    mat_ground = Lambertian(np.array([0.5, 0.5, 0.5]))
+    world.add(Sphere(np.array([0.0, -1000, 0.0]), 1000, mat_ground))
 
-    world.add(Sphere(np.array([0.0, -100.5, -1.0]), 100, mat_ground))
-    world.add(Sphere(np.array([0.0, 0.0, -1.0]), 0.5, mat_center))
-    world.add(Sphere(np.array([-1.0, 0.0, -1.0]), 0.5, mat_left))
-    world.add(Sphere(np.array([-1.0, 0.0, -1.0]), -0.45, mat_left))
-    world.add(Sphere(np.array([1.0, 0.0, -1.0]), 0.5, mat_right))
+    for a in range(-11, 11):
+        for b in range(-11, 11):
+            choose_mat = ru.get_random()
+            center = np.array([a + 0.9 * ru.get_random(), 0.2, b + 0.9 * ru.get_random()])
+
+            if ru.length(center - np.array([4.0, 0.2, 0.0])) > 0.9:
+                sphere_material: Material
+                if choose_mat < 0.8:
+                    albedo = ru.get_random_point() * ru.get_random_point()
+                    sphere_material = Lambertian(albedo)
+                elif choose_mat < 0.95:
+                    albedo = ru.get_random_point_in_range(0.5, 1.0)
+                    fuzz = ru.get_random_in_range(0.0, 0.5)
+                    sphere_material = Metal(albedo, fuzz)
+                else:
+                    sphere_material = Dielectric(1.5)
+                world.add(Sphere(center, 0.2, sphere_material))
+
+    mat1 = Dielectric(1.5)
+    world.add(Sphere(np.array([0.0, 1.0, 0.0]), 1.0, mat1))
+
+    mat2 = Lambertian(np.array([0.4, 0.2, 0.1]))
+    world.add(Sphere(np.array([-4.0, 1.0, 0.0]), 1.0, mat2))
+
+    mat3 = Metal(np.array([0.7, 0.6, 0.5]), 0.0)
+    world.add(Sphere(np.array([4.0, 1.0, 0.0]), 1.0, mat3))
 
     f = open(output_path, "w")
     f.write("P3\n")
     f.write("# " + output_name + ".ppm\n")
     f.write("# Ray Tracer created by Zigeng Zhu (zigeng2@illinois.edu)\n")
     f.write(str(img_width) + " " + str(img_height) + "\n255\n")
-
     device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
     torch.cuda.empty_cache()
-
     linear_render()
-    #parallel_render()
 
 
 if __name__ == "__main__":
