@@ -7,6 +7,7 @@ from hittable import HittableList
 from sphere import Sphere
 from camera import Camera
 from material import Material, Lambertian, Metal, Dielectric
+from bvh import BVHNode
 
 
 def linear_render():
@@ -137,6 +138,9 @@ def main():
 
     mat3 = Metal(np.array([0.7, 0.6, 0.5]), 0.0)
     world.add(Sphere(np.array([4.0, 1.0, 0.0]), 1.0, mat3))
+
+    # BVH implementation
+    world.add(BVHNode(world.objects, 0, len(world.objects), 0, 1))
 
     f = open(output_path, "w")
     f.write("P3\n")

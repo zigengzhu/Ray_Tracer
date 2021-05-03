@@ -27,6 +27,10 @@ def get_random():
     return rg.random()
 
 
+def get_random_int_in_range(min, max):
+    return int(get_random_in_range(min, max + 1))
+
+
 def get_random_in_range(min, max):
     return min + (max - min) * get_random()
 
