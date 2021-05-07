@@ -10,6 +10,22 @@ class Material(ABC):
     def scatter(self, r_in: Ray, rec):
         pass
 
+    def emitted(self, u: float, v: float, p: np.array):
+        return np.array([0, 0, 0])
+
+
+class DiffuseLight(Material, ABC):
+    emit: np.array
+
+    def __init__(self, emit: np.array):
+        self.emit = emit
+
+    def scatter(self, r_in: Ray, rec):
+        return False, Ray(rec.p, rec.normal + ru.get_random_unit_vector()), np.array([0, 0, 0])
+
+    def emitted(self, u: float, v: float, p: np.array):
+        return self.emit
+
 
 class Lambertian(Material, ABC):
     albedo: np.array

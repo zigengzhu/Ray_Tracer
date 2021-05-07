@@ -10,6 +10,8 @@ class HitRecord:
     normal: np.array
     mat: Material
     t: float
+    u: float
+    v: float
     front_face: bool
 
     def __init__(self):
@@ -80,5 +82,3 @@ class HittableList(Hittable, ABC):
                 output_box = surrounding_box(output_box, box)
             first_box = False
         return True, output_box
-
-

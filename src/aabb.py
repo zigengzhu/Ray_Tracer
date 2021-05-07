@@ -32,4 +32,3 @@ class AABB:
             if tmax <= tmin:
                 return False
         return True
-

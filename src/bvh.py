@@ -53,7 +53,7 @@ class BVHNode(Hittable, ABC):
                 self.left = objects[start]
                 self.right = objects[start + 1]
             else:
-                self.left = objects[start+1]
+                self.left = objects[start + 1]
                 self.right = objects[start]
         else:
             objects[start:end] = sorted(objects[start:end], key=lambda x: x.min_box[axis])

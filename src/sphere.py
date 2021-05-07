@@ -26,7 +26,6 @@ class Sphere(Hittable, ABC):
             raise
         self.min_box = box.minimum
 
-
     def hit(self, r: ry.Ray, t_min: float, t_max: float, rec: HitRecord):
         oc = r.origin - self.center
         a = ru.length_squared(r.direction)
@@ -49,8 +48,9 @@ class Sphere(Hittable, ABC):
         rec.p = r.at(rec.t)
         outward_normal = (rec.p - self.center) / self.radius
         rec.set_face_normal(r, outward_normal)
+        rec.u, rec.v = self.get_sphere_uv(outward_normal)
         rec.mat = self.material
-        return True
+        return True, rec
 
     def bounding_box(self, time0: float, time1: float, output_box: AABB):
         output_box = AABB(
@@ -58,3 +58,9 @@ class Sphere(Hittable, ABC):
             self.center + np.array([self.radius, self.radius, self.radius])
         )
         return True, output_box
+
+    def get_sphere_uv(self, p: np.array):
+        theta = np.arccos(-p[1])
+        phi = np.arctan2(-p[2], p[0]) + np.pi
+
+        return phi / (2 * np.pi), theta / np.pi
