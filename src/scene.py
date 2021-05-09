@@ -1,7 +1,6 @@
+import ctypes
 import time
 import numpy as np
-import torch
-import sys
 import rtxUtil as ru
 from hittable import HittableList
 from sphere import Sphere
@@ -9,6 +8,11 @@ from camera import Camera
 from material import Material, Lambertian, Metal, Dielectric, DiffuseLight
 from rectangle import XZRectangle, YZRectangle, XYRectangle
 from bvh import BVHNode
+from concurrent.futures import ThreadPoolExecutor
+from threading import Lock as threadLock
+from multiprocessing import Pool, Manager, Array, Process
+import ctypes as c
+import copy
 
 
 class Scene:
@@ -18,6 +22,7 @@ class Scene:
     samples_per_pixel: int
     max_depth: int
 
+    img: np.array
     world: HittableList
     camera: Camera
 
@@ -50,6 +55,9 @@ class Scene:
         self.samples_per_pixel = samples_per_pixel
         self.max_depth = max_depth
 
+        self.img = np.zeros((self.img_width * 3, self.img_height))
+        self.pixel_rendered = 0
+
         self.world = HittableList()
 
         if setting == "cornell_box":
@@ -59,6 +67,26 @@ class Scene:
         elif setting == "basic":
             self.basic()
 
+
+    '''
+    def init(self, si):
+        global shared_img
+        shared_img = si
+
+    def pooled_render(self):
+        lines = range(self.img_height - 1, -1, -1)
+        shared = Array(ctypes.c_double, self.img_width * 3 * self.img_height)
+        arr = np.frombuffer(shared.get_obj()).reshape((self.img_width * 3, self.img_height))
+        start = time.time()
+        p = Pool(initializer=self.init, initargs=(arr,))
+        p.map(self.render_line, lines)
+        self.img = arr
+        print(self.img)
+        self.write_to_file()
+        end = time.time()
+        print("\nRender complete.\n")
+        print("(normal) Time taken: " + str(end - start) + '\n')
+    '''
     def render(self):
         start = time.time()
         f = open(self.output_path, "w")
@@ -87,6 +115,64 @@ class Scene:
         end = time.time()
         print("\nRender complete.\n")
         print("(normal) Time taken: " + str(end - start) + '\n')
+    '''
+    def threaded_render(self):
+        executor = ThreadPoolExecutor(self.img_height)
+        start = time.time()
+        for line in range(self.img_height - 1, -1, -1):
+            executor.submit(self.thread_render_line, line)
+        while True:
+            progress = int(self.pixel_rendered * 100 / (self.img_width * self.img_height))
+            print('Progress: %d%%' % progress, end='\r', flush=True)
+            if self.pixel_rendered == self.img_height * self.img_width:
+                break
+            time.sleep(1)
+        print(self.img)
+        self.write_to_file()
+        end = time.time()
+        print("\nRender complete.\n")
+        print("(normal) Time taken: " + str(end - start) + '\n')
+
+    def render_line(self, line: int):
+        for i in range(0, self.img_width):
+            pixel_color = np.array([0, 0, 0], dtype=float)
+            for _ in range(0, self.samples_per_pixel):
+                u = (i + ru.get_random()) / (self.img_width - 1)
+                v = (line + ru.get_random()) / (self.img_height - 1)
+                pixel_color += ru.ray_color(self.camera.get_ray(u, v), self.background, self.world, self.max_depth)
+                print(pixel_color)
+            shared_img[i * 3, line] = pixel_color[0]
+            shared_img[i * 3 + 1, line] = pixel_color[1]
+            shared_img[i * 3 + 2, line] = pixel_color[2]
+            self.pixel_rendered += 1
+
+    def thread_render_line(self, line: int):
+        lock = threadLock()
+        for i in range(0, self.img_width):
+            pixel_color = np.array([0, 0, 0], dtype=float)
+            for _ in range(0, self.samples_per_pixel):
+                u = (i + ru.get_random()) / (self.img_width - 1)
+                v = (line + ru.get_random()) / (self.img_height - 1)
+                pixel_color += ru.ray_color(self.camera.get_ray(u, v), self.background, self.world, self.max_depth)
+            lock.acquire()
+            self.img[i * 3, line] = pixel_color[0]
+            self.img[i * 3 + 1, line] = pixel_color[1]
+            self.img[i * 3 + 2, line] = pixel_color[2]
+            self.pixel_rendered += 1
+            lock.release()
+    '''
+    def write_to_file(self):
+        f = open(self.output_path, "w")
+        f.write("P3\n")
+        f.write("# " + self.output_path + "\n")
+        f.write("# Ray Tracer created by Zigeng Zhu (zigeng2@illinois.edu)\n")
+        f.write(str(self.img_width) + " " + str(self.img_height) + "\n255\n")
+        for j in range(self.img_height - 1, -1, -1):
+            for i in range(0, self.img_width):
+                # pixel = self.img[i * 3: i*3+3, j]
+                pixel = self.img[i * 3: i * 3 + 3, j]
+                f.write(ru.color_to_str(pixel, self.samples_per_pixel))
+        print("Write to file done.\n")
 
     def cornell_box(self):
         self.lookfrom = np.array([278, 278, -800])
@@ -157,9 +243,8 @@ class Scene:
         self.lookat = np.array([0.0, 0.0, -1.0])
         self.vup = np.array([0.0, 1.0, 0.0])
         self.vfov = 20.0
-        #self.aperature = 2.0
-        #self.focus_dist = ru.length(self.lookfrom - self.lookat)
-
+        # self.aperature = 2.0
+        # self.focus_dist = ru.length(self.lookfrom - self.lookat)
 
         self.camera = Camera(self.img_width, self.img_height, self.lookfrom, self.lookat, self.vup, self.vfov,
                              self.aperature, self.focus_dist)

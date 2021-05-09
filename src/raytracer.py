@@ -34,10 +34,12 @@ def main():
     max_depth = int(input("\nPlease enter the max depth:\n"))
 
     s = Scene(output_path, img_width, img_height, samples_per_pixel, max_depth, setting="cornell_box")
-    s.render()
+    #s.render()
+    #s.threaded_render()
+    s.pooled_render()
 
-    # device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
-    # torch.cuda.empty_cache()
+
+
 
 
 if __name__ == "__main__":
