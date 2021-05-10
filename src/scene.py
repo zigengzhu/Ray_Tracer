@@ -66,6 +66,8 @@ class Scene:
             self.random_spheres()
         elif setting == "basic":
             self.basic()
+        elif setting == "my_scene":
+            self.my_scene()
 
 
     '''
@@ -192,6 +194,57 @@ class Scene:
         self.world.add(XZRectangle(0, 555, 0, 555, 0, white))
         self.world.add(XZRectangle(0, 555, 0, 555, 555, white))
         self.world.add(XYRectangle(0, 555, 0, 555, 555, white))
+
+        self.world.add(BVHNode(self.world.objects, 0, len(self.world.objects), 0, 1))
+
+    def my_scene(self):
+        self.vfov = 65
+        self.lookfrom = np.array([800, 180, 200])
+        self.lookat = np.array([200, 0, 800])
+        self.background = np.array([0, 0, 0])
+        self.camera = Camera(self.img_width, self.img_height, self.lookfrom, self.lookat, self.vup, self.vfov,
+                             self.aperature, self.focus_dist)
+        light = DiffuseLight(np.array([1, 1, 1]))
+        mirror = Metal(np.array([0.95, 0.95, 0.95]), 0)
+        mat_ground = Lambertian(np.array([0.5, 0.5, 0.5]))
+        glass = Dielectric(2.0)
+        mat_sphere = Lambertian(np.array([0.8, 0.8, 0.8]))
+
+        self.world.add(XZRectangle(200, 800, 200, 800, 0, mat_ground))
+
+        self.world.add(XYRectangle(425, 575, 0, 100, 700, light))
+
+        self.world.add(XYRectangle(425, 575, 0, 100, 310, light))
+
+        self.world.add(YZRectangle(0, 250, 200, 800, 200, mirror))
+
+        self.world.add(YZRectangle(0, 250, 200, 800, 800, mirror))
+
+        self.world.add(XYRectangle(200, 800, 0, 250, 800, mirror))
+
+        self.world.add(XYRectangle(200, 800, 0, 250, 200, mirror))
+
+        for x in range(470, 531, 30):
+            for z in range(535, 474, -30):
+                self.world.add(Sphere(np.array([x, 15, z]), 15, glass))
+
+        for x in range(485, 516, 30):
+            for z in range(520, 489, -30):
+                self.world.add(Sphere(np.array([x, 15 * (1 + np.sqrt(3)), z]), 15, glass))
+
+        self.world.add(Sphere(np.array([500, 15 * (1 + 2 * np.sqrt(3)), 505]), 15, glass))
+
+        self.world.add(Sphere(np.array([500, 15, 445]), 15, mirror))
+        self.world.add(Sphere(np.array([500, 15, 565]), 15, mirror))
+
+        self.world.add(Sphere(np.array([440, 15, 505]), 15, mat_sphere))
+        self.world.add(Sphere(np.array([560, 15, 505]), 15, mat_sphere))
+
+        dist = 15 * np.sqrt(2)
+        self.world.add(Sphere(np.array([470 - dist, 15, 535 + dist]), 15, light))
+        self.world.add(Sphere(np.array([530 + dist, 15, 535 + dist]), 15, light))
+        self.world.add(Sphere(np.array([470 - dist, 15, 475 - dist]), 15, light))
+        self.world.add(Sphere(np.array([530 + dist, 15, 475 - dist]), 15, light))
 
         self.world.add(BVHNode(self.world.objects, 0, len(self.world.objects), 0, 1))
 

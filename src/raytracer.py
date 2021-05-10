@@ -33,14 +33,10 @@ def main():
     samples_per_pixel = int(input("\nPlease enter the number of samples per pixel:\n"))
     max_depth = int(input("\nPlease enter the max depth:\n"))
 
-    s = Scene(output_path, img_width, img_height, samples_per_pixel, max_depth, setting="cornell_box")
-    #s.render()
+    s = Scene(output_path, img_width, img_height, samples_per_pixel, max_depth, setting="my_scene")
+    s.render()
     #s.threaded_render()
-    s.pooled_render()
-
-
-
-
+    #s.pooled_render()
 
 if __name__ == "__main__":
     main()
